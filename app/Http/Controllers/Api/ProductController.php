@@ -140,14 +140,20 @@ class ProductController extends Controller
         }
 
         foreach ($images as $id => $image) {
-            // تخزين الصورة في storage/app/public/images
-            $path = $image->store('images', 'public'); // images/xxxx.png
-            $url = Storage::disk('public')->url($path); // /storage/images/xxxx.png
+            $path = 'images/' . Str::random();
+            if (!Storage::exists($path)) {
+                Storage::makeDirectory($path, 0755, true);
+            }
+            $name = Str::random() . '.' . $image->getClientOriginalExtension();
+            if (!Storage::putFileAs('public/' . $path, $image, $name)) {
+                throw new \Exception("Unable to save file \"{$name}\"");
+            }
+            $relativePath = $path . '/' . $name;
 
             ProductImage::create([
                 'product_id' => $product->id,
-                'path' => $path,
-                'url' => URL::to($url),
+                'path' => $relativePath,
+                'url' => URL::to(Storage::url('public/' . $relativePath)),
                 'mime' => $image->getClientMimeType(),
                 'size' => $image->getSize(),
                 'position' => $positions[$id] ?? $id + 1
@@ -163,9 +169,8 @@ class ProductController extends Controller
             ->get();
 
         foreach ($images as $image) {
-            // If there is an old image, delete it
             if ($image->path) {
-                Storage::deleteDirectory('/public/' . dirname($image->path));
+                Storage::deleteDirectory('public/' . dirname($image->path));
             }
             $image->delete();
         }
