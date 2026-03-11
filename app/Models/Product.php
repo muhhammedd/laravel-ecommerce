@@ -38,7 +38,14 @@ class Product extends Model
 
     public function getImageAttribute()
     {
-        return $this->images->count() > 0 ? $this->images->get(0)->url : null;
+        if ($this->images->count() > 0) {
+            $url = $this->images->get(0)->url;
+            // تأكد أن الرابط يبدأ بـ http أو /storage أو /img
+            if (preg_match('#^(https?://|/storage/|/img/)#', $url)) {
+                return $url;
+            }
+        }
+        return null;
     }
 
     public function categories()

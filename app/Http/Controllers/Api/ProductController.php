@@ -140,20 +140,14 @@ class ProductController extends Controller
         }
 
         foreach ($images as $id => $image) {
-            $path = 'images/' . Str::random();
-            if (!Storage::exists($path)) {
-                Storage::makeDirectory($path, 0755, true);
-            }
-            $name = Str::random().'.'.$image->getClientOriginalExtension();
-            if (!Storage::putFileAS('public/' . $path, $image, $name)) {
-                throw new \Exception("Unable to save file \"{$image->getClientOriginalName()}\"");
-            }
-            $relativePath = $path . '/' . $name;
+            // تخزين الصورة في storage/app/public/images
+            $path = $image->store('images', 'public'); // images/xxxx.png
+            $url = Storage::disk('public')->url($path); // /storage/images/xxxx.png
 
             ProductImage::create([
                 'product_id' => $product->id,
-                'path' => $relativePath,
-                'url' => URL::to(Storage::url($relativePath)),
+                'path' => $path,
+                'url' => URL::to($url),
                 'mime' => $image->getClientMimeType(),
                 'size' => $image->getSize(),
                 'position' => $positions[$id] ?? $id + 1
