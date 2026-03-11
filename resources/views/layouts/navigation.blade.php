@@ -23,7 +23,7 @@
         <!-- Desktop Navigation -->
         <nav class="hidden md:flex items-center gap-8 flex-1 justify-center">
             <a href="{{ route('home') }}" class="text-candle-dark hover:text-candle-green transition-colors">Home</a>
-            <a href="{{ route('product.index') }}" class="text-candle-dark hover:text-candle-green transition-colors">Shop</a>
+            <a href="{{ route('home') }}" class="text-candle-dark hover:text-candle-green transition-colors">Shop</a>
             <a href="#" class="text-candle-dark hover:text-candle-green transition-colors">Our Story</a>
             <a href="#" class="text-candle-dark hover:text-candle-green transition-colors">Markets</a>
             <a href="#" class="text-candle-dark hover:text-candle-green transition-colors">Wholesale</a>
@@ -117,7 +117,7 @@
             </button>
             <nav class="mt-8 flex flex-col gap-4">
                 <a href="{{ route('home') }}" class="text-candle-dark hover:text-candle-green transition-colors">Home</a>
-                <a href="{{ route('product.index') }}" class="text-candle-dark hover:text-candle-green transition-colors">Shop</a>
+                <a href="{{ route('home') }}" class="text-candle-dark hover:text-candle-green transition-colors">Shop</a>
                 <a href="#" class="text-candle-dark hover:text-candle-green transition-colors">Our Story</a>
                 <a href="#" class="text-candle-dark hover:text-candle-green transition-colors">Markets</a>
                 <a href="#" class="text-candle-dark hover:text-candle-green transition-colors">Wholesale</a>
