@@ -11,7 +11,13 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Nunito', ...defaultTheme.fontFamily.sans],
+                sans: ['Assistant', ...defaultTheme.fontFamily.sans],
+                serif: ['Cormorant Garamond', ...defaultTheme.fontFamily.serif],
+            },
+            colors: {
+                'candle-green': '#727D61',
+                'candle-light': '#F5F5F5',
+                'candle-dark': '#1F1F1F',
             },
         },
     },
