@@ -90,7 +90,11 @@ export function createProduct({commit}, product) {
   form.append('quantity', product.quantity || 0);
   
   if (product.images && product.images.length) {
-    product.images.forEach(im => form.append('images[]', im))
+    product.images.forEach(im => {
+      if (im instanceof File) {
+        form.append('images[]', im)
+      }
+    })
   }
   
   if (product.categories && product.categories.length) {

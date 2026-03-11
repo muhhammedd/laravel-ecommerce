@@ -1,13 +1,12 @@
-<!-- This example requires Tailwind CSS v2.0+ -->
 <template>
   <div class="flex items-center justify-between mb-3">
     <h1 v-if="!loading" class="text-3xl font-semibold">
       {{ product.id ? `Update product: "${product.title}"` : 'Create new Product' }}
     </h1>
   </div>
-  <div class="bg-white rounded-lg shadow animate-fade-in-down">
+  <div class="bg-white rounded-lg shadow animate-fade-in-down relative">
     <Spinner v-if="loading"
-             class="absolute left-0 top-0 bg-white right-0 bottom-0 flex items-center justify-center z-50"/>
+             class="absolute left-0 top-0 bg-white/50 right-0 bottom-0 flex items-center justify-center z-50"/>
     <form v-if="!loading" @submit.prevent="onSubmit">
       <div class="grid grid-cols-3">
         <div class="col-span-2 px-4 pt-5 pb-4">
@@ -58,11 +57,14 @@ import store from "../../store/index.js";
 import Spinner from "../../components/core/Spinner.vue";
 import {useRoute, useRouter} from "vue-router";
 import ImagePreview from "../../components/ImagePreview.vue";
-// import the component
 import Treeselect from 'vue3-treeselect'
-// import the styles
 import 'vue3-treeselect/dist/vue3-treeselect.css'
 import axiosClient from "../../axios.js";
+
+// Define props to handle extraneous attributes like 'id'
+defineProps({
+  id: [String, Number]
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -74,14 +76,13 @@ const product = ref({
   deleted_images: [],
   image_positions: {},
   description: '',
-  price: null,
-  quantity: null,
+  price: 0,
+  quantity: 0,
   published: false,
   categories: []
 })
 
 const errors = ref({});
-
 const loading = ref(false)
 const options = ref([])
 
@@ -93,13 +94,21 @@ onMounted(() => {
         loading.value = false;
         const data = response.data;
         // Ensure null values are converted to appropriate defaults for components
-        data.description = data.description || '';
-        data.title = data.title || '';
-        data.images = data.images || [];
-        data.deleted_images = [];
-        data.image_positions = data.image_positions || {};
-        data.categories = data.categories || [];
-        product.value = data;
+        product.value = {
+          id: data.id,
+          title: data.title || '',
+          description: data.description || '',
+          price: data.price || 0,
+          quantity: data.quantity || 0,
+          published: !!data.published,
+          categories: data.categories || [],
+          images: data.images || [],
+          deleted_images: [],
+          image_positions: data.image_positions || {}
+        };
+      })
+      .catch(() => {
+        loading.value = false;
       })
   }
 
@@ -113,51 +122,46 @@ function onSubmit($event, close = false) {
   loading.value = true
   errors.value = {};
   
-  // Clean up data before sending
-  const payload = {...product.value};
-  payload.quantity = payload.quantity || 0;
-  payload.description = payload.description || '';
+  // Create a clean payload for submission
+  const p = product.value;
+  const payload = {
+    ...p,
+    title: p.title || '',
+    description: p.description || '',
+    price: p.price || 0,
+    quantity: p.quantity || 0,
+    published: p.published ? 1 : 0
+  };
 
-  if (payload.id) {
-    store.dispatch('updateProduct', payload)
-      .then(response => {
-        loading.value = false;
-        if (response.status === 200) {
-          product.value = response.data
-          store.commit('showToast', 'Product was successfully updated');
-          store.dispatch('getProducts')
-          if (close) {
-            router.push({name: 'app.products'})
-          }
+  const action = payload.id ? 'updateProduct' : 'createProduct';
+
+  store.dispatch(action, payload)
+    .then(response => {
+      loading.value = false;
+      if (response.status === 200 || response.status === 201) {
+        store.commit('showToast', `Product was successfully ${payload.id ? 'updated' : 'created'}`);
+        store.dispatch('getProducts')
+        if (close) {
+          router.push({name: 'app.products'})
+        } else if (!payload.id) {
+          router.push({name: 'app.products.edit', params: {id: response.data.id}})
+        } else {
+          // Update local state with fresh data from server
+          const data = response.data;
+          product.value = {
+            ...product.value,
+            ...data,
+            description: data.description || '',
+            deleted_images: []
+          };
         }
-      })
-      .catch(err => {
-        loading.value = false;
-        if (err.response && err.response.data && err.response.data.errors) {
-          errors.value = err.response.data.errors
-        }
-      })
-  } else {
-    store.dispatch('createProduct', payload)
-      .then(response => {
-        loading.value = false;
-        if (response.status === 201) {
-          product.value = response.data
-          store.commit('showToast', 'Product was successfully created');
-          store.dispatch('getProducts')
-          if (close) {
-            router.push({name: 'app.products'})
-          } else {
-            router.push({name: 'app.products.edit', params: {id: response.data.id}})
-          }
-        }
-      })
-      .catch(err => {
-        loading.value = false;
-        if (err.response && err.response.data && err.response.data.errors) {
-          errors.value = err.response.data.errors
-        }
-      })
-  }
+      }
+    })
+    .catch(err => {
+      loading.value = false;
+      if (err.response && err.response.data && err.response.data.errors) {
+        errors.value = err.response.data.errors
+      }
+    })
 }
 </script>
