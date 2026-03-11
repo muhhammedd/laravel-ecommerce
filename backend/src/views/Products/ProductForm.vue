@@ -16,7 +16,11 @@
           <CustomInput type="number" class="mb-2" v-model="product.price" label="Price" prepend="$" :errors="errors['price']"/>
           <CustomInput type="number" class="mb-2" v-model="product.quantity" label="Quantity" :errors="errors['quantity']"/>
           <CustomInput type="checkbox" class="mb-2" v-model="product.published" label="Published" :errors="errors['published']"/>
-          <treeselect v-model="product.categories" :multiple="true" :options="options" :errors="errors['categories']"/>
+          <div class="mt-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Categories</label>
+            <treeselect v-model="product.categories" :multiple="true" :options="options" :errors="errors['categories']"/>
+            <small v-if="errors['categories']" class="text-red-600">{{ errors['categories'][0] }}</small>
+          </div>
         </div>
         <div class="col-span-1 px-4 pt-5 pb-4">
           <image-preview v-model="product.images"
@@ -65,7 +69,7 @@ const router = useRouter()
 
 const product = ref({
   id: null,
-  title: null,
+  title: '',
   images: [],
   deleted_images: [],
   image_positions: {},
@@ -81,15 +85,21 @@ const errors = ref({});
 const loading = ref(false)
 const options = ref([])
 
-const emit = defineEmits(['update:modelValue', 'close'])
-
 onMounted(() => {
   if (route.params.id) {
     loading.value = true
     store.dispatch('getProduct', route.params.id)
       .then((response) => {
         loading.value = false;
-        product.value = response.data
+        const data = response.data;
+        // Ensure null values are converted to appropriate defaults for components
+        data.description = data.description || '';
+        data.title = data.title || '';
+        data.images = data.images || [];
+        data.deleted_images = [];
+        data.image_positions = data.image_positions || {};
+        data.categories = data.categories || [];
+        product.value = data;
       })
   }
 
@@ -102,9 +112,14 @@ onMounted(() => {
 function onSubmit($event, close = false) {
   loading.value = true
   errors.value = {};
-  product.value.quantity = product.value.quantity || null
-  if (product.value.id) {
-    store.dispatch('updateProduct', product.value)
+  
+  // Clean up data before sending
+  const payload = {...product.value};
+  payload.quantity = payload.quantity || 0;
+  payload.description = payload.description || '';
+
+  if (payload.id) {
+    store.dispatch('updateProduct', payload)
       .then(response => {
         loading.value = false;
         if (response.status === 200) {
@@ -118,10 +133,12 @@ function onSubmit($event, close = false) {
       })
       .catch(err => {
         loading.value = false;
-        errors.value = err.response.data.errors
+        if (err.response && err.response.data && err.response.data.errors) {
+          errors.value = err.response.data.errors
+        }
       })
   } else {
-    store.dispatch('createProduct', product.value)
+    store.dispatch('createProduct', payload)
       .then(response => {
         loading.value = false;
         if (response.status === 201) {
@@ -131,14 +148,15 @@ function onSubmit($event, close = false) {
           if (close) {
             router.push({name: 'app.products'})
           } else {
-            product.value = response.data
             router.push({name: 'app.products.edit', params: {id: response.data.id}})
           }
         }
       })
       .catch(err => {
         loading.value = false;
-        errors.value = err.response.data.errors
+        if (err.response && err.response.data && err.response.data.errors) {
+          errors.value = err.response.data.errors
+        }
       })
   }
 }

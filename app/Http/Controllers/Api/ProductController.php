@@ -40,7 +40,7 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param \App\Http\Requests\ProductRequest $request
      * @return \Illuminate\Http\Response
      */
     public function store(ProductRequest $request)
@@ -50,7 +50,7 @@ class ProductController extends Controller
         $data['updated_by'] = $request->user()->id;
 
         /** @var \Illuminate\Http\UploadedFile[] $images */
-        $images = $data['images'] ?? [];
+        $images = $request->file('images') ?: [];
         $imagePositions = $data['image_positions'] ?? [];
         $categories = $data['categories'] ?? [];
 
@@ -76,7 +76,7 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param \App\Http\Requests\ProductRequest $request
      * @param \App\Models\Product      $product
      * @return \Illuminate\Http\Response
      */
@@ -86,7 +86,7 @@ class ProductController extends Controller
         $data['updated_by'] = $request->user()->id;
 
         /** @var \Illuminate\Http\UploadedFile[] $images */
-        $images = $data['images'] ?? [];
+        $images = $request->file('images') ?: [];
         $deletedImages = $data['deleted_images'] ?? [];
         $imagePositions = $data['image_positions'] ?? [];
         $categories = $data['categories'] ?? [];
@@ -120,16 +120,17 @@ class ProductController extends Controller
         ProductCategory::where('product_id', $product->id)->delete();
         $data = array_map(fn($id) => (['category_id' => $id, 'product_id' => $product->id]), $categoryIds);
 
-        ProductCategory::insert($data);
+        if (count($data) > 0) {
+            ProductCategory::insert($data);
+        }
     }
 
     /**
      *
      *
      * @param UploadedFile[] $images
-     * @return string
+     * @return void
      * @throws \Exception
-     * @author Zura Sekhniashvili <zurasekhniashvili@gmail.com>
      */
     private function saveImages($images, $positions, Product $product)
     {
@@ -141,8 +142,8 @@ class ProductController extends Controller
 
         foreach ($images as $id => $image) {
             $path = 'images/' . Str::random();
-            if (!Storage::exists($path)) {
-                Storage::makeDirectory($path, 0755, true);
+            if (!Storage::exists('public/' . $path)) {
+                Storage::makeDirectory('public/' . $path, 0755, true);
             }
             $name = Str::random() . '.' . $image->getClientOriginalExtension();
             if (!Storage::putFileAs('public/' . $path, $image, $name)) {

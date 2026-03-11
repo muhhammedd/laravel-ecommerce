@@ -12,7 +12,7 @@
                 :value="props.modelValue"
                 :class="inputClasses"
                 @change="onChange($event.target.value)">
-          <option v-for="option of selectOptions" :value="option.key">{{ option.text }}</option>
+          <option v-for="option of selectOptions" :key="option.key" :value="option.key">{{ option.text }}</option>
         </select>
       </template>
       <template v-else-if="type === 'textarea'">
@@ -26,7 +26,7 @@
       <template v-else-if="type === 'richtext'">
         <ckeditor :editor="editor"
                   :required="required"
-                  :model-value="props.modelValue"
+                  :model-value="props.modelValue || ''"
                   @input="onChange"
                   :class="inputClasses"
                   :config="editorConfig"></ckeditor>
@@ -35,8 +35,7 @@
         <input :type="type"
                :name="name"
                :required="required"
-               :value="props.modelValue"
-               @input="emit('change', $event.target.files[0])"
+               @change="emit('update:modelValue', $event.target.files[0])"
                :class="inputClasses"
                :placeholder="label"/>
       </template>
@@ -44,7 +43,7 @@
         <input :id="id"
                :name="name"
                :type="type"
-               :checked="props.modelValue"
+               :checked="!!props.modelValue"
                :required="required"
                @change="emit('update:modelValue', $event.target.checked)"
                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"/>
@@ -71,13 +70,13 @@
 
 <script setup>
 
-import {computed, ref} from "vue";
+import {computed} from "vue";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 const editor = ClassicEditor;
 
 const props = defineProps({
-  modelValue: [String, Number, File],
+  modelValue: [String, Number, File, Boolean],
   label: String,
   type: {
     type: String,
@@ -105,10 +104,9 @@ const props = defineProps({
 })
 
 const id = computed(() => {
-  if (props.id) return props.id;
-
   return `id-${Math.floor(1000000 + Math.random() * 1000000)}`;
 })
+
 const inputClasses = computed(() => {
   const cls = [
     `block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`,
@@ -126,6 +124,7 @@ const inputClasses = computed(() => {
   }
   return cls.join(' ')
 })
+
 const emit = defineEmits(['update:modelValue', 'change'])
 
 function onChange(value) {
