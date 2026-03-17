@@ -47,7 +47,7 @@
                :checked="props.modelValue"
                :required="required"
                @change="emit('update:modelValue', $event.target.checked)"
-               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"/>
+               class="h-4 w-4 text-amber-700 focus:ring-amber-500 border-gray-300 rounded"/>
         <label :for="id" class="ml-2 block text-sm text-gray-900"> {{ label }} </label>
       </template>
       <template v-else>
@@ -111,7 +111,7 @@ const id = computed(() => {
 })
 const inputClasses = computed(() => {
   const cls = [
-    `block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`,
+    `block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-amber-500 focus:border-amber-500 focus:z-10 sm:text-sm`,
   ];
 
   if (props.append && !props.prepend) {

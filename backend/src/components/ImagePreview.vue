@@ -42,7 +42,7 @@
 // Imports
 import {Sortable} from "sortablejs-vue3";
 import {v4 as uuidv4} from 'uuid';
-import {onMounted, ref, watch} from "vue";
+import {markRaw, onMounted, ref, watch} from "vue";
 
 // Uses
 
@@ -62,26 +62,33 @@ const emit = defineEmits(['update:modelValue', 'update:deletedImages', 'update:i
 // Methods
 function onFileChange($event) {
   const chosenFiles = [...$event.target.files];
-  files.value = [...files.value, ...chosenFiles];
-  $event.target.value = ''
+  const newFiles = [];
   const allPromises = [];
-  for (let file of chosenFiles) {
-    file.id = uuidv4()
-    const promise = readFile(file)
-    allPromises.push(promise)
-    promise
-      .then(url => {
+
+  for (let f of chosenFiles) {
+    const fileObj = {
+      id: uuidv4(),
+      file: f
+    };
+    newFiles.push(fileObj);
+
+    const promise = readFile(f).then(url => {
         imageUrls.value.push({
           url,
-          id: file.id
-        })
-      })
+          id: fileObj.id
+        });
+    });
+    allPromises.push(promise);
   }
-  Promise.all(allPromises)
-    .then(() => {
-      updateImagePositions()
-    })
-  emit('update:modelValue', files.value)
+
+  files.value = [...files.value, ...newFiles];
+  $event.target.value = '';
+
+  Promise.all(allPromises).then(() => {
+      updateImagePositions();
+  });
+
+  emit('update:modelValue', files.value);
 }
 
 function readFile(file) {
@@ -148,20 +155,23 @@ function updateImagePositions() {
 }
 
 // Hooks
-watch('props.images', () => {
-  console.log(props.images)
-  imageUrls.value = [
-    ...imageUrls.value,
-    ...props.images.map(im => ({
-      ...im,
-      isProp: true
-    }))
-  ]
-
-  updateImagePositions()
+watch(() => props.images, (newImages) => {
+  if (!newImages || !newImages.length) return;
+  // Only populate once – when imageUrls is still completely empty of prop images.
+  // This prevents duplicate entries on re-renders.
+  const existingPropIds = new Set(imageUrls.value.filter(i => i.isProp).map(i => i.id));
+  const incoming = newImages
+    .filter(im => !existingPropIds.has(im.id))
+    .filter(im => im.url && !im.file) // Safely ignore newly uploaded file wrappers emitted via v-model
+    .map(im => ({ ...im, isProp: true }));
+  if (incoming.length) {
+    imageUrls.value = [...imageUrls.value, ...incoming];
+    updateImagePositions();
+  }
 }, {immediate: true, deep: true})
+
 onMounted(() => {
-  emit('update:modelValue', [])
+  // Initialise deleted-images ref in the parent – do NOT reset the images list here
   emit('update:deletedImages', deletedImages.value)
 })
 

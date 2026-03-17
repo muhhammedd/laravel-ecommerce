@@ -18,9 +18,12 @@ class OrderResource extends JsonResource
      */
     public function toArray($request)
     {
-        $customer = $this->user->customer;
-        $shipping = $customer->shippingAddress;
-        $billing = $customer->billingAddress;
+        $customer = $this->user ? $this->user->customer : null;
+        $shipping = $customer ? $customer->shippingAddress : null;
+        $billing = $customer ? $customer->billingAddress : null;
+        
+        // Fallback to order details for guests
+        $orderDetail = $this->details;
 
         return [
             'id' => $this->id,
@@ -38,28 +41,28 @@ class OrderResource extends JsonResource
                 ]
             ]),
             'customer' => [
-                'id' => $this->user->id,
-                'email' => $this->user->email,
-                'first_name' => $customer->first_name,
-                'last_name' => $customer->last_name,
-                'phone' => $customer->phone,
+                'id' => $this->user ? $this->user->id : null,
+                'email' => $this->user ? $this->user->email : ($orderDetail->email ?? null),
+                'first_name' => $customer ? $customer->first_name : ($orderDetail->first_name ?? ''),
+                'last_name' => $customer ? $customer->last_name : ($orderDetail->last_name ?? ''),
+                'phone' => $customer ? $customer->phone : ($orderDetail->phone ?? ''),
                 'shippingAddress' => [
-                    'id' => $shipping->id,
-                    'address1' => $shipping->address1,
-                    'address2' => $shipping->address2,
-                    'city' => $shipping->city,
-                    'state' => $shipping->state,
-                    'zipcode' => $shipping->zipcode,
-                    'country' => $shipping->country->name,
+                    'id' => $shipping ? $shipping->id : null,
+                    'address1' => $shipping ? $shipping->address1 : ($orderDetail->address1 ?? ''),
+                    'address2' => $shipping ? $shipping->address2 : ($orderDetail->address2 ?? ''),
+                    'city' => $shipping ? $shipping->city : ($orderDetail->city ?? ''),
+                    'state' => $shipping ? $shipping->state : ($orderDetail->state ?? ''),
+                    'zipcode' => $shipping ? $shipping->zipcode : ($orderDetail->zipcode ?? ''),
+                    'country' => $shipping ? $shipping->country->name : ($orderDetail->country_code ?? ''),
                 ],
                 'billingAddress' => [
-                    'id' => $billing->id,
-                    'address1' => $billing->address1,
-                    'address2' => $billing->address2,
-                    'city' => $billing->city,
-                    'state' => $billing->state,
-                    'zipcode' => $billing->zipcode,
-                    'country' => $billing->country->name,
+                    'id' => $billing ? $billing->id : null,
+                    'address1' => $billing ? $billing->address1 : '',
+                    'address2' => $billing ? $billing->address2 : '',
+                    'city' => $billing ? $billing->city : '',
+                    'state' => $billing ? $billing->state : '',
+                    'zipcode' => $billing ? $billing->zipcode : '',
+                    'country' => $billing ? $billing->country->name : '',
                 ]
             ],
             'created_at' => (new \DateTime($this->created_at))->format('Y-m-d H:i:s'),

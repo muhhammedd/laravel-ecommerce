@@ -71,12 +71,12 @@
 
             <!-- Product Details -->
             <div class="lg:col-span-2">
-                <h1 class="font-serif text-3xl font-light text-candle-dark mb-4">
+                <h1 class="font-serif text-3xl font-bold text-candle-dark mb-4">
                     {{ $product->title }}
                 </h1>
 
                 <div class="text-2xl font-semibold text-candle-dark mb-6">
-                    ${{ number_format($product->price, 2) }} AUD
+                    ${{ number_format($product->price, 2) }} EGP
                 </div>
 
                 <!-- Stock Status -->
@@ -110,7 +110,7 @@
                 <button
                     :disabled="product.quantity === 0"
                     @click="addToCart($refs.quantityEl.value)"
-                    class="w-full py-3 px-4 bg-candle-green text-white rounded-lg font-semibold hover:bg-opacity-90 transition-colors mb-6 flex items-center justify-center gap-2"
+                    class="w-full py-3 px-4 bg-amber-700 text-white rounded-lg font-semibold hover:bg-opacity-90 transition-colors mb-6 flex items-center justify-center gap-2"
                     :class="product.quantity === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -120,18 +120,36 @@
                 </button>
 
                 <!-- Product Description -->
+                 <div class="border-t border-gray-200 pt-6" x-data="{ expanded: true }">
+                    <button
+                        @click="expanded = !expanded"
+                        class="flex items-center justify-between w-full text-lg font-semibold text-candle-dark hover:text-candle-green transition-colors mb-4"
+                    >
+                        <span>Product Description</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform" :class="{'rotate-180': expanded}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7-7m0 0L5 14m7-7v12" />
+                        </svg>
+                   </button>
+                   <div x-show="expanded" x-collapse class="text-candle-dark text-md leading-relaxed">
+                        {!! $product->description !!}
+                    </div>
+                </div>
                 <div class="border-t border-gray-200 pt-6" x-data="{ expanded: false }">
                     <button
                         @click="expanded = !expanded"
                         class="flex items-center justify-between w-full text-lg font-semibold text-candle-dark hover:text-candle-green transition-colors mb-4"
                     >
-                        <span>Product Details</span>
+                        <span>Shipping Details</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform" :class="{'rotate-180': expanded}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7-7m0 0L5 14m7-7v12" />
                         </svg>
-                    </button>
-                    <div x-show="expanded" x-collapse class="text-gray-600 text-sm leading-relaxed">
-                        {!! $product->description !!}
+                   </button>
+                   <div x-show="expanded" x-collapse class="text-candle-dark text-md leading-relaxed">
+                        Order will be delivered within 3-5 business days.
+                        <br>
+                        No returns accepted.
+                        <br>
+                        No refunds.
                     </div>
                 </div>
             </div>

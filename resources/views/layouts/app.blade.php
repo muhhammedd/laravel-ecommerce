@@ -28,12 +28,12 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-candle-green text-white mt-16">
+    <footer class="bg-amber-700 text-white mt-16">
         <!-- Mission Section -->
         <div class="px-6 py-16 text-center border-b border-white border-opacity-20">
             <h2 class="font-serif text-2xl font-light mb-4">our mission</h2>
             <p class="max-w-2xl mx-auto text-sm leading-relaxed opacity-90">
-                Self-care and mental health are so important to us here at Mountain Candle Co. We truly believe that in the chaos of the world, a little moment of peace and tranquility can make all the difference. Connect to the power of nature.
+                Self-care and mental health are so important to us here at Dreams Candles. We truly believe that in the chaos of the world, a little moment of peace and tranquility can make all the difference. Connect to the power of nature.
             </p>
             <p class="mt-4 text-sm font-semibold">CANDLE ON : WORLD OFF</p>
         </div>

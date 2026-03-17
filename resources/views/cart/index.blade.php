@@ -111,10 +111,71 @@
                             <span class="text-2xl font-bold text-candle-dark">$<span x-text="cartTotal"></span></span>
                         </div>
 
-                        <form action="{{ route('cart.checkout') }}" method="post">
+                        <form action="{{ route('cart.checkout') }}" method="post" class="space-y-4">
                             @csrf
-                            <button type="submit" class="w-full py-3 px-4 bg-candle-green text-white rounded-lg font-semibold hover:bg-opacity-90 transition-colors">
-                                Proceed to Checkout
+                            
+                            @if(session('error'))
+                                <div class="bg-red-100 text-red-700 p-3 rounded text-sm">
+                                    {{ session('error') }}
+                                </div>
+                            @endif
+
+                            @if($errors->any())
+                                <div class="bg-red-100 text-red-700 p-3 rounded text-sm">
+                                    <ul class="list-disc list-inside">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            @php
+                                $user = request()->user();
+                                $customer = $user ? $user->customer : null;
+                                $shipping = $customer ? $customer->shippingAddress : null;
+                            @endphp
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">First Name <span class="text-red-500">*</span></label>
+                                    <input type="text" name="first_name" required value="{{ old('first_name', $customer->names ?? '') }}" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-candle-green focus:ring focus:ring-candle-green focus:ring-opacity-50">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Last Name <span class="text-red-500">*</span></label>
+                                    <input type="text" name="last_name" required value="{{ old('last_name', $customer->last_name ?? '') }}" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-candle-green focus:ring focus:ring-candle-green focus:ring-opacity-50">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
+                                    <input type="email" name="email" required value="{{ old('email', $user->email ?? '') }}" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-candle-green focus:ring focus:ring-candle-green focus:ring-opacity-50">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Phone <span class="text-red-500">*</span></label>
+                                    <input type="text" name="phone" required value="{{ old('phone', $customer->phone ?? '') }}" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-candle-green focus:ring focus:ring-candle-green focus:ring-opacity-50">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Address <span class="text-red-500">*</span></label>
+                                    <input type="text" name="address1" required value="{{ old('address1', $shipping->address1 ?? '') }}" placeholder="Street address"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-candle-green focus:ring focus:ring-candle-green focus:ring-opacity-50">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">City <span class="text-red-500">*</span></label>
+                                    <input type="text" name="city" required value="{{ old('city', $shipping->city ?? '') }}" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-candle-green focus:ring focus:ring-candle-green focus:ring-opacity-50">
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 border border-gray-200 p-3 rounded text-sm text-gray-600 mt-4 mb-4">
+                                <span class="font-semibold block mb-1">Payment Method:</span> 
+                                Cash on Delivery (Pay when you receive the order)
+                            </div>
+
+                            <button type="submit" class="w-full py-3 px-4 bg-amber-700 text-white rounded-lg font-semibold hover:bg-opacity-90 transition-colors">
+                                Place Order
                             </button>
                         </form>
 

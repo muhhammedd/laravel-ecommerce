@@ -21,24 +21,30 @@ class CheckoutController extends Controller
 {
     public function checkout(Request $request)
     {
-        /** @var \App\Models\User $user */
         $user = $request->user();
 
-        $customer = $user->customer;
-        if (!$customer->billingAddress || !$customer->shippingAddress) {
-            return redirect()->route('profile')->with('error', 'Please provide your address details first.');
-        }
-
-        \Stripe\Stripe::setApiKey(getenv('STRIPE_SECRET_KEY'));
+        // Validate basic shipping fields
+        $request->validate([
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'phone' => 'required',
+            'email' => 'required|email',
+            'address1' => 'required',
+            'city' => 'required',
+        ]);
 
         [$products, $cartItems] = Cart::getProductsAndCartItems();
 
+        if (empty($products)) {
+            return redirect()->back()->with('error', 'Your cart is empty.');
+        }
+
         $orderItems = [];
-        $lineItems = [];
         $totalPrice = 0;
 
         DB::beginTransaction();
 
+        // Check availability
         foreach ($products as $product) {
             $quantity = $cartItems[$product->id]['quantity'];
             if ($product->quantity !== null && $product->quantity < $quantity) {
@@ -51,20 +57,11 @@ class CheckoutController extends Controller
             }
         }
 
+        // Prepare order items
         foreach ($products as $product) {
             $quantity = $cartItems[$product->id]['quantity'];
             $totalPrice += $product->price * $quantity;
-            $lineItems[] = [
-                'price_data' => [
-                    'currency' => 'usd',
-                    'product_data' => [
-                        'name' => $product->title,
-                        'images' => $product->image ? [$product->image] : []
-                    ],
-                    'unit_amount' => $product->price * 100,
-                ],
-                'quantity' => $quantity,
-            ];
+            
             $orderItems[] = [
                 'product_id' => $product->id,
                 'quantity' => $quantity,
@@ -76,26 +73,14 @@ class CheckoutController extends Controller
                 $product->save();
             }
         }
-//        dd(route('checkout.failure', [], true));
-
-//        dd(route('checkout.success', [], true) . '?session_id={CHECKOUT_SESSION_ID}');
-
-        $session = \Stripe\Checkout\Session::create([
-            'line_items' => $lineItems,
-            'mode' => 'payment',
-            'customer_creation' => 'always',
-            'success_url' => route('checkout.success', [], true) . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('checkout.failure', [], true),
-        ]);
 
         try {
-
             // Create Order
             $orderData = [
                 'total_price' => $totalPrice,
-                'status' => OrderStatus::Unpaid,
-                'created_by' => $user->id,
-                'updated_by' => $user->id,
+                'status' => OrderStatus::Pending->value, // Cash on Delivery default
+                'created_by' => $user ? $user->id : null,
+                'updated_by' => $user ? $user->id : null,
             ];
             $order = Order::create($orderData);
 
@@ -105,155 +90,32 @@ class CheckoutController extends Controller
                 OrderItem::create($orderItem);
             }
 
-            // Create Payment
+            // Create Payment (COD)
             $paymentData = [
                 'order_id' => $order->id,
                 'amount' => $totalPrice,
-                'status' => PaymentStatus::Pending,
-                'type' => 'cc',
-                'created_by' => $user->id,
-                'updated_by' => $user->id,
-                'session_id' => $session->id
+                'status' => \App\Enums\PaymentStatus::Pending->value,
+                'type' => 'cod', // Cash on Delivery
+                'created_by' => $user ? $user->id : null,
+                'updated_by' => $user ? $user->id : null,
             ];
-            Payment::create($paymentData);
+            \App\Models\Payment::create($paymentData);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+            // Save order detail for guest info / address
+            \App\Models\OrderDetail::create([
+                'order_id' => $order->id,
+                'first_name' => $request->post('first_name'),
+                'last_name' => $request->post('last_name'),
+                'phone' => $request->post('phone'),
+                'email' => $request->post('email'),
+                'address1' => $request->post('address1'),
+                'address2' => $request->post('address2') ?: '',
+                'city' => $request->post('city'),
+                'state' => $request->post('state') ?: '',
+                'zipcode' => $request->post('zipcode') ?: '',
+                'country_code' => $request->post('country_code') ?: '',
+            ]);
 
-            Log::critical(__METHOD__ . ' method does not work. '. $e->getMessage());
-            throw $e;
-        }
-
-        DB::commit();
-        CartItem::where(['user_id' => $user->id])->delete();
-
-        return redirect($session->url);
-    }
-
-    public function success(Request $request)
-    {
-        /** @var \App\Models\User $user */
-        $user = $request->user();
-        \Stripe\Stripe::setApiKey(getenv('STRIPE_SECRET_KEY'));
-
-        try {
-            $session_id = $request->get('session_id');
-            $session = \Stripe\Checkout\Session::retrieve($session_id);
-            if (!$session) {
-                return view('checkout.failure', ['message' => 'Invalid Session ID']);
-            }
-
-            $payment = Payment::query()
-                ->where(['session_id' => $session_id])
-                ->whereIn('status', [PaymentStatus::Pending, PaymentStatus::Paid])
-                ->first();
-            if (!$payment) {
-                throw new NotFoundHttpException();
-            }
-            if ($payment->status === PaymentStatus::Pending->value) {
-                $this->updateOrderAndSession($payment);
-            }
-            $customer = \Stripe\Customer::retrieve($session->customer);
-
-            return view('checkout.success', compact('customer'));
-        } catch (NotFoundHttpException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            return view('checkout.failure', ['message' => $e->getMessage()]);
-        }
-    }
-
-    public function failure(Request $request)
-    {
-        return view('checkout.failure', ['message' => ""]);
-    }
-
-    public function checkoutOrder(Order $order, Request $request)
-    {
-        \Stripe\Stripe::setApiKey(getenv('STRIPE_SECRET_KEY'));
-
-        $lineItems = [];
-        foreach ($order->items as $item) {
-            $lineItems[] = [
-                'price_data' => [
-                    'currency' => 'usd',
-                    'product_data' => [
-                        'name' => $item->product->title,
-//                        'images' => [$product->image]
-                    ],
-                    'unit_amount' => $item->unit_price * 100,
-                ],
-                'quantity' => $item->quantity,
-            ];
-        }
-
-        $session = \Stripe\Checkout\Session::create([
-            'line_items' => $lineItems,
-            'mode' => 'payment',
-            'success_url' => route('checkout.success', [], true) . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('checkout.failure', [], true),
-        ]);
-
-        $order->payment->session_id = $session->id;
-        $order->payment->save();
-
-
-        return redirect($session->url);
-    }
-
-    public function webhook()
-    {
-        \Stripe\Stripe::setApiKey(getenv('STRIPE_SECRET_KEY'));
-
-        $endpoint_secret = env('WEBHOOK_SECRET_KEY');
-
-        $payload = @file_get_contents('php://input');
-        $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
-        $event = null;
-
-        try {
-            $event = \Stripe\Webhook::constructEvent(
-                $payload, $sig_header, $endpoint_secret
-            );
-        } catch (\UnexpectedValueException $e) {
-            // Invalid payload
-            return response('', 401);
-        } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            // Invalid signature
-            return response('', 402);
-        }
-
-        // Handle the event
-        switch ($event->type) {
-            case 'checkout.session.completed':
-                $paymentIntent = $event->data->object;
-                $sessionId = $paymentIntent['id'];
-
-                $payment = Payment::query()
-                    ->where(['session_id' => $sessionId, 'status' => PaymentStatus::Pending])
-                    ->first();
-                if ($payment) {
-                    $this->updateOrderAndSession($payment);
-                }
-            // ... handle other event types
-            default:
-                echo 'Received unknown event type ' . $event->type;
-        }
-
-        return response('', 200);
-    }
-
-    private function updateOrderAndSession(Payment $payment)
-    {
-        DB::beginTransaction();
-        try {
-            $payment->status = PaymentStatus::Paid->value;
-            $payment->update();
-
-            $order = $payment->order;
-
-            $order->status = OrderStatus::Paid->value;
-            $order->update();
         } catch (\Exception $e) {
             DB::rollBack();
             Log::critical(__METHOD__ . ' method does not work. '. $e->getMessage());
@@ -262,14 +124,38 @@ class CheckoutController extends Controller
 
         DB::commit();
 
+        // Clear Cart
+        if ($user) {
+            CartItem::where(['user_id' => $user->id])->delete();
+        } else {
+            \Illuminate\Support\Facades\Cookie::queue(\Illuminate\Support\Facades\Cookie::forget('cart_items'));
+        }
+
+        // Send Email using the email provided in checkout
         try {
             $adminUsers = User::where('is_admin', 1)->get();
-
-            foreach ([...$adminUsers, $order->user] as $user) {
-                Mail::to($user)->send(new NewOrderEmail($order, (bool)$user->is_admin));
+            $customerEmail = $request->post('email');
+            
+            foreach ($adminUsers as $admin) {
+                Mail::to($admin)->send(new NewOrderEmail($order, true));
+            }
+            if ($customerEmail) {
+                Mail::to($customerEmail)->send(new NewOrderEmail($order, false));
             }
         } catch (\Exception $e) {
             Log::critical('Email sending does not work. '. $e->getMessage());
         }
+
+        return redirect()->route('checkout.success')->with('success', 'Your order has been placed successfully. Payment is Cash on Delivery.');
+    }
+
+    public function success(Request $request)
+    {
+        return view('checkout.success');
+    }
+
+    public function failure(Request $request)
+    {
+        return view('checkout.failure', ['message' => "Order failed."]);
     }
 }

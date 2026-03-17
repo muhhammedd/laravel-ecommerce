@@ -50,12 +50,12 @@ class ProductController extends Controller
         $products = $query
             ->where('published', '=', 1)
             ->where(function ($query) use ($search) {
-                /** @var $query \Illuminate\Database\Eloquent\Builder */
-                $query->where('products.title', 'like', "%$search%")
-                    ->orWhere('products.description', 'like', "%$search%");
-            })
+            /** @var $query \Illuminate\Database\Eloquent\Builder */
+            $query->where('products.title', 'like', "%$search%")
+                ->orWhere('products.description', 'like', "%$search%");
+        })
 
-            ->paginate(5);
+            ->paginate(12);
 
         return view('product.index', [
             'products' => $products

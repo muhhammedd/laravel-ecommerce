@@ -36,6 +36,11 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function details()
+    {
+        return $this->hasOne(OrderDetail::class);
+    }
+
     public static function deleteUnpaidOrders($hours)
     {
         return Order::query()->where('status', OrderStatus::Unpaid->value)

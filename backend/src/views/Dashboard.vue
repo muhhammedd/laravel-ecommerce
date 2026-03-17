@@ -54,7 +54,7 @@
       <template v-if="!loading.latestOrders">
         <div v-for="o of latestOrders" :key="o.id" class="py-2 px-3 hover:bg-gray-50">
           <p>
-            <router-link :to="{name: 'app.orders.view', params: {id: o.id}}" class="text-indigo-700 font-semibold">
+            <router-link :to="{name: 'app.orders.view', params: {id: o.id}}" class="text-amber-700 font-semibold">
               Order #{{ o.id }}
             </router-link>
             created {{ o.created_at }}. {{ o.items }} items

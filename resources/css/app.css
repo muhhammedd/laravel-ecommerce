@@ -7,7 +7,12 @@
     @apply bg-white text-candle-dark font-sans;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-serif font-light;
   }
 
@@ -38,7 +43,7 @@
 
 @layer components {
   .btn-primary {
-    @apply text-white bg-candle-green py-2 px-4 rounded shadow-md hover:bg-opacity-90 active:bg-opacity-75 transition-colors;
+    @apply text-white bg-amber-700 py-2 px-4 rounded shadow-md hover:bg-opacity-90 active:bg-opacity-75 transition-colors;
   }
 
   .btn-secondary {
@@ -51,58 +56,58 @@
 }
 
 /* WYSIWYG Content Styles */
-.wysiwyg-content > blockquote,
-.wysiwyg-content > dl,
-.wysiwyg-content > dd,
-.wysiwyg-content > h1,
-.wysiwyg-content > h2,
-.wysiwyg-content > h3,
-.wysiwyg-content > h4,
-.wysiwyg-content > h5,
-.wysiwyg-content > h6,
-.wysiwyg-content > hr,
-.wysiwyg-content > figure,
-.wysiwyg-content > p,
-.wysiwyg-content > pre {
+.wysiwyg-content>blockquote,
+.wysiwyg-content>dl,
+.wysiwyg-content>dd,
+.wysiwyg-content>h1,
+.wysiwyg-content>h2,
+.wysiwyg-content>h3,
+.wysiwyg-content>h4,
+.wysiwyg-content>h5,
+.wysiwyg-content>h6,
+.wysiwyg-content>hr,
+.wysiwyg-content>figure,
+.wysiwyg-content>p,
+.wysiwyg-content>pre {
   margin: revert;
 }
 
-.wysiwyg-content > ol,
-.wysiwyg-content > ul {
+.wysiwyg-content>ol,
+.wysiwyg-content>ul {
   list-style: revert;
   margin: revert;
   padding: revert;
 }
 
-.wysiwyg-content > table {
+.wysiwyg-content>table {
   border-collapse: revert;
 }
 
-.wysiwyg-content > h1,
-.wysiwyg-content > h2,
-.wysiwyg-content > h3,
-.wysiwyg-content > h4,
-.wysiwyg-content > h5,
-.wysiwyg-content > h6 {
+.wysiwyg-content>h1,
+.wysiwyg-content>h2,
+.wysiwyg-content>h3,
+.wysiwyg-content>h4,
+.wysiwyg-content>h5,
+.wysiwyg-content>h6 {
   font-size: revert;
   font-weight: revert;
 }
 
-.table > tbody > tr > td,
-.table > thead > tr > th {
+.table>tbody>tr>td,
+.table>thead>tr>th {
   padding: 0.5rem;
 }
 
-.table-sm > tbody > tr > td,
-.table-sm > thead > tr > th {
+.table-sm>tbody>tr>td,
+.table-sm>thead>tr>th {
   padding: 0.25rem;
 }
 
-.category-list > .category-item:hover > .category-list {
+.category-list>.category-item:hover>.category-list {
   display: flex;
 }
 
-.category-list > .category-item > .category-list > .category-item > .category-list {
+.category-list>.category-item>.category-list>.category-item>.category-list {
   left: 100%;
   top: 0;
 }
@@ -123,7 +128,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-candle-green rounded-full;
+  @apply bg-amber-700 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {

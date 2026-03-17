@@ -29,13 +29,13 @@
             <MenuItem v-slot="{ active }">
               <button
                 :class="[
-                  active ? 'bg-indigo-600 text-white' : 'text-gray-900',
+                  active ? 'bg-amber-700 text-white' : 'text-gray-900',
                   'group flex w-full items-center rounded-md px-2 py-2 text-sm',
                 ]"
               >
                 <UserIcon
                   :active="active"
-                  class="mr-2 h-5 w-5 text-indigo-400"
+                  class="mr-2 h-5 w-5 text-amber-400"
                   aria-hidden="true"
                 />
                 Profile
@@ -45,13 +45,13 @@
               <button
                 @click="logout"
                 :class="[
-                  active ? 'bg-indigo-600 text-white' : 'text-gray-900',
+                  active ? 'bg-amber-700 text-white' : 'text-gray-900',
                   'group flex w-full items-center rounded-md px-2 py-2 text-sm',
                 ]"
               >
                 <LogoutIcon
                   :active="active"
-                  class="mr-2 h-5 w-5 text-indigo-400"
+                  class="mr-2 h-5 w-5 text-amber-400"
                   aria-hidden="true"
                 />
                 Logout

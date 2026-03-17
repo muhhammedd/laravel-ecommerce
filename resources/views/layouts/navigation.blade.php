@@ -7,8 +7,8 @@
     class="bg-white"
 >
     <!-- Announcement Bar -->
-    <div class="bg-candle-green text-white text-center py-2 text-sm">
-        Hand poured artisan coconut soy wax candles Tamborine Mountain QLD
+    <div class="bg-amber-700 text-white text-center py-2 text-sm">
+        Dreams Candles - A candle for every mood
     </div>
 
     <!-- Main Header -->
@@ -16,7 +16,7 @@
         <!-- Logo -->
         <a href="{{ route('home') }}" class="flex-shrink-0">
             <div class="font-serif text-2xl font-light tracking-wide text-candle-dark">
-                MOUNTAINCANDLECO
+                DREAMS CANDLES
             </div>
         </a>
 
@@ -42,13 +42,6 @@
 
         <!-- Right Icons -->
         <div class="flex items-center gap-6">
-            <!-- Search -->
-            <button class="text-candle-dark hover:text-candle-green transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-            </button>
-
             <!-- User Account -->
             @if (!Auth::guest())
                 <div x-data="{ open: false }" class="relative">

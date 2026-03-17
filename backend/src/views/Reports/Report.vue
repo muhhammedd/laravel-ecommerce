@@ -4,11 +4,11 @@
       <div class="col-span-2 grid grid-cols-2 gap-3">
         <router-link :to="{name: 'reports.orders', params: route.params}"
                      class="bg-white py-2 px-3 text-gray-700 rounded-md text-center"
-                     active-class="text-indigo-600 bg-indigo-50">Orders Report
+                     active-class="text-amber-700 bg-amber-50">Orders Report
         </router-link>
         <router-link :to="{name: 'reports.customers', params: route.params}"
                      class="bg-white py-2 px-3 text-gray-700 rounded-md text-center"
-                     active-class="text-indigo-600 bg-indigo-50">Customers Report
+                     active-class="text-amber-700 bg-amber-50">Customers Report
         </router-link>
       </div>
       <div>

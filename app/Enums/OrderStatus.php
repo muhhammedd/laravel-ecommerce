@@ -16,6 +16,7 @@ namespace App\Enums;
  */
 enum OrderStatus: string
 {
+    case Pending = 'pending';
     case Unpaid = 'unpaid';
     case Paid = 'paid';
     case Cancelled = 'cancelled';
@@ -25,7 +26,7 @@ enum OrderStatus: string
     public static function getStatuses()
     {
         return [
-            self::Paid, self::Unpaid, self::Cancelled, self::Shipped, self::Completed
+            self::Pending, self::Paid, self::Unpaid, self::Cancelled, self::Shipped, self::Completed
         ];
     }
 }

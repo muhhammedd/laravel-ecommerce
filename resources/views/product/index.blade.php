@@ -5,10 +5,6 @@ $categoryList = \App\Models\Category::getActiveAsTree();
 
 <x-app-layout>
     <!-- Products Header Section -->
-    <div class="bg-candle-light py-12 px-6 mb-8">
-        <h1 class="font-serif text-5xl font-light text-candle-dark">Products</h1>
-    </div>
-
     <!-- Filters and Sort Bar -->
     <div class="px-6 py-6 border-b border-gray-200" x-data="{
         selectedSort: '{{ request()->get('sort', '-updated_at') }}',
@@ -81,8 +77,8 @@ $categoryList = \App\Models\Category::getActiveAsTree();
             There are no products published
         </div>
     @else
-        <div class="px-6 py-8">
-            <div class="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div class="px-2 py-2">
+            <div class="grid gap-4 grid-cols-2 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 @foreach($products as $product)
                     <!-- Product Card -->
                     <div
@@ -94,7 +90,7 @@ $categoryList = \App\Models\Category::getActiveAsTree();
                             'price' => $product->price,
                             'addToCartUrl' => route('cart.add', $product)
                         ]) }})"
-                        class="group bg-white rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                        class="group bg-white rounded-md overflow-hidden hover:shadow-lg transition-shadow"
                     >
                         <!-- Product Image -->
                         <a href="{{ route('product.view', $product->slug) }}" class="block overflow-hidden bg-gray-100 aspect-square">
@@ -107,19 +103,19 @@ $categoryList = \App\Models\Category::getActiveAsTree();
 
                         <!-- Product Info -->
                         <div class="p-4">
-                            <h3 class="text-sm font-semibold text-candle-dark mb-2 line-clamp-2">
-                                <a href="{{ route('product.view', $product->slug) }}" class="hover:text-candle-green transition-colors">
+                            <h3 class="text-xl font-bold text-candle-dark mb-4 line-clamp-2">
+                                <a href="{{ route('product.view', $product->slug) }}" class="hover:text-candle-primary transition-colors">
                                     {{ $product->title }}
                                 </a>
                             </h3>
-                            <p class="text-lg font-semibold text-candle-dark">${{ number_format($product->price, 2) }} AUD</p>
+                            <p class="text-lg font-semibold text-candle-dark">${{ number_format($product->price, 2) }} EGP</p>
                         </div>
 
                         <!-- Add to Cart Button -->
                         <div class="px-4 pb-4">
                             <button
                                 @click="addToCart()"
-                                class="w-full px-4 py-2 bg-candle-green text-white rounded hover:bg-opacity-90 transition-colors text-sm font-semibold"
+                                class="w-full px-4 py-2 bg-amber-700 text-white rounded hover:bg-opacity-90 transition-colors text-sm font-semibold"
                             >
                                 Add to Cart
                             </button>

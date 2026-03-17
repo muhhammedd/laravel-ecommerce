@@ -110,6 +110,17 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        // Delete all image files from disk, then remove the product's image folder
+        $images = ProductImage::where('product_id', $product->id)->get();
+        foreach ($images as $image) {
+            if ($image->path) {
+                Storage::disk('public')->delete($image->path);
+            }
+            $image->delete();
+        }
+        // Remove the whole product image directory (images/{product_id}/)
+        Storage::disk('public')->deleteDirectory('images/' . $product->id);
+
         $product->delete();
 
         return response()->noContent();
@@ -133,24 +144,28 @@ class ProductController extends Controller
      */
     private function saveImages($images, $positions, Product $product)
     {
+        // Update positions for existing images
         foreach ($positions as $id => $position) {
             ProductImage::query()
                 ->where('id', $id)
                 ->update(['position' => $position]);
         }
 
+        // Store each new image inside its own product folder: images/{product_id}/
+        $productFolder = 'images/' . $product->id;
+
         foreach ($images as $id => $image) {
-            // تخزين الصورة في storage/app/public/images
-            $path = $image->store('images', 'public'); // images/xxxx.png
-            $url = Storage::disk('public')->url($path); // /storage/images/xxxx.png
+            $path = $image->store($productFolder, 'public'); // images/{product_id}/xxxx.png
+            // Storage::disk('public')->url() already returns the full URL, no need to wrap with URL::to()
+            $url = Storage::disk('public')->url($path);
 
             ProductImage::create([
                 'product_id' => $product->id,
                 'path' => $path,
-                'url' => URL::to($url),
+                'url' => $url,
                 'mime' => $image->getClientMimeType(),
                 'size' => $image->getSize(),
-                'position' => $positions[$id] ?? $id + 1
+                'position' => $positions[$id] ?? $id + 1,
             ]);
         }
     }
@@ -163,9 +178,9 @@ class ProductController extends Controller
             ->get();
 
         foreach ($images as $image) {
-            // If there is an old image, delete it
+            // Delete the individual image file from the public disk
             if ($image->path) {
-                Storage::deleteDirectory('/public/' . dirname($image->path));
+                Storage::disk('public')->delete($image->path);
             }
             $image->delete();
         }

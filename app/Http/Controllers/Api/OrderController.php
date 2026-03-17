@@ -30,7 +30,7 @@ class OrderController extends Controller
 
         $query = Order::query()
             ->withCount('items')
-            ->with('user.customer')
+            ->with(['user.customer', 'details'])
             ->where('id', 'like', "%{$search}%")
             ->orderBy($sortField, $sortDirection)
             ->paginate($perPage);
